@@ -4,6 +4,8 @@
 
 package edu.neu.coe.info6205.randomwalk;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 public class RandomWalk {
@@ -21,10 +23,16 @@ public class RandomWalk {
      */
     private void move(int dx, int dy) {
         // TO BE IMPLEMENTED  do move
+        try{
+            x+=dx;
+            y+=dy;
+        }catch (Exception e){
+            throw new RuntimeException("Not implemented");
+        }
 
 
         // SKELETON
-         throw new RuntimeException("Not implemented");
+
         // END SOLUTION
     }
 
@@ -34,10 +42,18 @@ public class RandomWalk {
      * @param m the number of steps the drunkard takes
      */
     private void randomWalk(int m) {
-        // TO BE IMPLEMENTED 
+        // TO BE IMPLEMENTED
+        try {
+            for (int i = 0; i < m; i++) {
+                randomMove();
+            }
+        }catch (Exception e)
+        {
+            throw new RuntimeException("implementation missing");
+
+        }
 
 
-throw new RuntimeException("implementation missing");
     }
 
     /**
@@ -59,7 +75,9 @@ throw new RuntimeException("implementation missing");
         // TO BE IMPLEMENTED 
 
         // SKELETON
-         return 0.0;
+        // Formula to find Euclidean/ Pythagorean distance between two points is d = sqrt( (X2 - X1)^2 + (Y2 - Y1)^2 )
+        // As we are assuming our starting point as X1 = 0 and Y1 = 0, our formula will be = sqrt( (X2)^2 + (Y2)^2))
+         return Math.sqrt(Math.pow(x,2) + Math.pow(y,2));
         // END SOLUTION
     }
 
@@ -81,13 +99,37 @@ throw new RuntimeException("implementation missing");
     }
 
     public static void main(String[] args) {
+
+//        Test Case inputs
         if (args.length == 0)
             throw new RuntimeException("Syntax: RandomWalk steps [experiments]");
-        int m = Integer.parseInt(args[0]);
-        int n = 30;
-        if (args.length > 1) n = Integer.parseInt(args[1]);
-        double meanDistance = randomWalkMulti(m, n);
-        System.out.println(m + " steps: " + meanDistance + " over " + n + " experiments");
+        int[] m_array = new int[args.length];
+        for(int i = 0 ; i < args.length - 1; i++){
+            m_array[i] = Integer.parseInt(args[i]);
+        }
+        int m = 0;
+        int n = 10;
+        if (args.length > 1) n = Integer.parseInt(args[args.length - 1]);
+        for (int k : m_array) {
+            m = k;
+            double meanDistance = randomWalkMulti(m, n);
+            System.out.println(m + " steps: " + meanDistance + " over " + n + " experiments");
+        }
+//        ------------------------------------------------------------------------------------
+
+//        Custom Inputs
+//        Random r = new Random();
+//        int k = 0;
+//        for(int i = 0; i < 10; i++){
+//            for(int j = 0; j < 6; j++){
+//                System.out.println("Experiment Number: " + ++k);
+//                int m = r.nextInt(100);
+//                int n = r.nextInt(100);
+//                double meanDistance = randomWalkMulti(i+1, j+1);
+//                System.out.println(m + " steps: " + meanDistance + " over " + n + " experiments");
+//            }
+//        }
+//
     }
 
 }

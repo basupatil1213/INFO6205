@@ -50,14 +50,31 @@ public class Newton {
     }
 
     public static void main(String[] args) {
+        newtonApproximation("sin(x) - x",
+                                (double x) -> Math.sin(x) - x,
+                                (double x) -> Math.cos(x) - 1);
+        newtonApproximation("cos(x) - x",
+                            (double x) -> Math.cos(x) - x,
+                            (double x) -> -Math.sin(x) - 1);
+        newtonApproximation("sec(x) - x",
+                            (double x) -> 1.0 / Math.cos(x) - x,
+                            (double x) -> Math.tan(x) * (1.0 / Math.cos(x)));
 
+
+    }
+
+    public static void newtonApproximation(final String equation,
+                                           final DoubleFunction<Double> f,
+                                           final DoubleFunction<Double> dfbydx)
+    {
         // Build the Newton's Approximation problem to be solved: cos(x) = x
-        Newton newton = new Newton("cos(x) - x", (double x) -> Math.cos(x) - x, (double x) -> -Math.sin(x) - 1);
+        Newton newton = new Newton(equation, f, dfbydx);
+
 
         // Solve the problem starting with a value of x = 1;
         // requiring a precision of 10^-7;
         // and giving up after 200 tries.
-        Either<String, Double> result = newton.solve(1.0, 200, 1E-7);
+        Either<String, Double> result = newton.solve(0.7, 100, 1E-7);
 
         // Process the result
         result.apply(
