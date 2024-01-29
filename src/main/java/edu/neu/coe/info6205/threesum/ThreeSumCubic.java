@@ -36,4 +36,5 @@ class ThreeSumCubic implements ThreeSum {
 
     private final int[] a;
     private final int length;
+
 }

@@ -152,5 +152,4 @@ public class ThreeSumTest {
         Triple[] triplesCubic = new ThreeSumCubic(ints).getTriples();
         assertEquals(triplesCubic.length, triplesQuadratic.length);
     }
-
 }

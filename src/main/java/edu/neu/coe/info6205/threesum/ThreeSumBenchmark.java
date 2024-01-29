@@ -1,6 +1,7 @@
 package edu.neu.coe.info6205.threesum;
 
 import edu.neu.coe.info6205.util.Benchmark_Timer;
+import edu.neu.coe.info6205.util.Stopwatch;
 import edu.neu.coe.info6205.util.TimeLogger;
 import edu.neu.coe.info6205.util.Utilities;
 
@@ -20,6 +21,7 @@ public class ThreeSumBenchmark {
         benchmarkThreeSum("ThreeSumQuadratic", (xs) -> new ThreeSumQuadratic(xs).getTriples(), n, timeLoggersQuadratic);
         benchmarkThreeSum("ThreeSumQuadrithmic", (xs) -> new ThreeSumQuadrithmic(xs).getTriples(), n, timeLoggersQuadrithmic);
         benchmarkThreeSum("ThreeSumCubic", (xs) -> new ThreeSumCubic(xs).getTriples(), n, timeLoggersCubic);
+        benchmarkThreeSum("ThreeSumQuadratic with Calipers", (xs) -> new ThreeSumQuadraticWithCalipers(xs).getTriples(), n, timeLoggersQuadratic);
     }
 
     public static void main(String[] args) {
@@ -34,16 +36,21 @@ public class ThreeSumBenchmark {
 
     private void benchmarkThreeSum(final String description, final Consumer<int[]> function, int n, final TimeLogger[] timeLoggers) {
         if (description.equals("ThreeSumCubic") && n > 4000) return;
-        // TO BE IMPLEMENTED 
-
-
-
-
-
-
-
-
-throw new RuntimeException("implementation missing");
+        // TO BE IMPLEMENTED
+        try {
+            System.out.println("\n" + description + "\n");
+            double time=0.0;
+            for(int i=0;i<runs;i++) {
+                Stopwatch stopwatch = new Stopwatch();
+                function.accept(supplier.get());
+                time = time+ (double) stopwatch.lap();
+            }
+            Double timePerRun = time/runs;
+            timeLoggers[0].log(timePerRun, n);
+            timeLoggers[1].log(timePerRun, n);
+        } catch (Exception e){
+            throw new RuntimeException("implementation missing");
+        }
     }
 
     private final static TimeLogger[] timeLoggersCubic = {
