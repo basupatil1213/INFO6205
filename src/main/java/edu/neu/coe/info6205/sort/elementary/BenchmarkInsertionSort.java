@@ -26,9 +26,10 @@ public class BenchmarkInsertionSort {
             }
             double avgTime=benchmark_timer.run(random,100);
             System.out.println("Avg time taken to sort the Random Array of length "+lengthOfArray[i]+" is T="+avgTime);
+            System.out.println("Log(N): " + Math.log10(lengthOfArray[i]) + " Log(T): "+Math.log(avgTime));
         }
 
-        System.out.println();
+        System.out.println("\n-----**END**-----\n");
         System.out.println("Reverse Ordered Array Benchmarks: ");
         for(int i=0;i<lengthOfArray.length;i++){
             Integer[] reverse=new Integer[lengthOfArray[i]];
@@ -39,9 +40,10 @@ public class BenchmarkInsertionSort {
             }
             double avgTime=benchmark_timer.run(reverse,100);
             System.out.println("Avg time taken to sort the Reverse Ordered Array of length  "+lengthOfArray[i]+" is T="+avgTime);
+            System.out.println("Log(N): " + Math.log10(lengthOfArray[i]) + " Log(T): "+Math.log(avgTime));
         }
 
-        System.out.println();
+        System.out.println("\n-----**END**-----\n");
         System.out.println("Partially Ordered Array Benchmarks:");
         for(int i=0;i<lengthOfArray.length;i++){
             Random rand = new Random();
@@ -55,11 +57,12 @@ public class BenchmarkInsertionSort {
             }
             double avgTime=benchmark_timer.run(partial,100);
             System.out.println("Avg time taken to sort the Partially Ordered Array of length "+lengthOfArray[i]+" is T="+avgTime);
+            System.out.println("Log(N): " + Math.log10(lengthOfArray[i]) + " Log(T): "+Math.log(avgTime));
         }
 
-        System.out.println();
+        System.out.println("\n-----**END**-----\n");
 
-        System.out.println("Benchmarks for Sorted Array:");
+        System.out.println("Sorted Array BenchMarks:");
 
         for(int i=0;i<lengthOfArray.length;i++){
             Integer[] sorted=new Integer[lengthOfArray[i]];
@@ -69,7 +72,9 @@ public class BenchmarkInsertionSort {
             }
             double avgTime=benchmark_timer.run(sorted,100);
             System.out.println("Avg time taken to sort the Sorted Array of length "+lengthOfArray[i]+" is T="+avgTime);
+            System.out.println("Log(N): " + Math.log10(lengthOfArray[i]) + " Log(T): "+Math.log(avgTime));
         }
+        System.out.println("\n-----**END**-----\n");
 
     }
 }
