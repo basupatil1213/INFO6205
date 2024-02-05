@@ -58,7 +58,9 @@ public class BenchmarkInsertionSort {
         }
 
         System.out.println();
+
         System.out.println("Benchmarks for Sorted Array:");
+
         for(int i=0;i<lengthOfArray.length;i++){
             Integer[] sorted=new Integer[lengthOfArray[i]];
 
