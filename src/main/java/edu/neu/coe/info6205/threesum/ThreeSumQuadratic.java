@@ -1,6 +1,7 @@
 package edu.neu.coe.info6205.threesum;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -43,7 +44,7 @@ public class ThreeSumQuadratic implements ThreeSum {
         int k = length - 1;
         int i = 0;
         try{
-            while (k>j && i<j){
+            while (i<j && k>j){
                 if((a[i] + a[j] + a[k]) == 0){
                     triples.add(new Triple(a[i], a[j], a[k]));
                     i++;
