@@ -8,11 +8,16 @@ import edu.neu.coe.info6205.sort.Helper;
 import edu.neu.coe.info6205.sort.HelperFactory;
 import edu.neu.coe.info6205.sort.SortWithHelper;
 import edu.neu.coe.info6205.sort.elementary.*;
+import edu.neu.coe.info6205.sort.elementary.BubbleSort;
+import edu.neu.coe.info6205.sort.elementary.InsertionSort;
+import edu.neu.coe.info6205.sort.elementary.RandomSort;
+import edu.neu.coe.info6205.sort.elementary.ShellSort;
 import edu.neu.coe.info6205.sort.linearithmic.TimSort;
 import edu.neu.coe.info6205.sort.linearithmic.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.util.*;
@@ -20,6 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static edu.neu.coe.info6205.util.SortBenchmarkHelper.generateRandomLocalDateTimeArray;
@@ -34,21 +40,41 @@ public class SortBenchmark {
 
     public static void main(String[] args) throws IOException {
         Config config = Config.load(SortBenchmark.class);
-        logger.info("SortBenchmark.main: " + config.get("SortBenchmark", "version") + " with word counts: " + Arrays.toString(args));
+//        logger.info("SortBenchmark.main: " + config.get("SortBenchmark", "version") + " with word counts: " + Arrays.toString(args));
         if (args.length == 0) logger.warn("No word counts specified on the command line");
-        new SortBenchmark(config).doMain(args);
+
+        int minimum = 10000;
+        int maximum = 256000;
+        String stratergy = config.get("sortbenchmark", "stratergy");
+        logger.info("SortBenchmark.main: " + config.get("SortBenchmark", "version") + " with minimum: " + minimum + " and maximum: " + maximum + " and stratergy: " + stratergy);
+        SortBenchmark benchmark = new SortBenchmark(config);
+        benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt));
+        if (benchmark.isConfigBenchmarkIntegerSorter("shellSort"))
+            benchmark.sortIntegersByShellSort(config.getInt("shellsort", "n", 100000));
+        benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt));
+        benchmark.sortLocalDateTimes(config.getInt("benchmarkdatesorters", "n", 100000), config);
+
+        IntStream.iterate(minimum, i -> i < maximum, i -> i * 2).forEach(n -> {
+            List<SortWithHelper<Integer>> sorters = getSorters(n, config);
+            sorters.forEach(sorter -> benchmark.sortIntegersbySorter(n,sorter));
+        });
     }
 
-    void doMain(String[] args) {
-        sortStrings(getWordCounts(args));
-        doIntegerSorts(getWordCounts(args));
+
+    private void sortIntegersbySorter(int n, SortWithHelper<Integer> sorter) {
+        final Random random = new Random(n+50);
+        Integer[] numbers = new Integer[n];
+        for (int i = 0; i < n; i++) numbers[i] = random.nextInt();
+        runIntegerSortBenchmark(numbers, n, 10, sorter, sorter::preProcess, timeLoggersLinearithmic);
     }
 
-    public void doIntegerSorts(Stream<Integer> wordCounts) {
-        if (isConfigBenchmarkIntegerSorter("shellsort"))
-            wordCounts.forEach(this::getSortedIntegersByShellSort);
+    private static List<SortWithHelper<Integer>> getSorters(final int n, Config config) {
+        var res = new ArrayList<SortWithHelper<Integer>>();
+        res.add(new MergeSort<Integer>(HelperFactory.create("MergeSort", n, config)));
+        res.add(new HeapSort<Integer>(HelperFactory.create("HeapSort", n, config)));
+        res.add(new QuickSort_DualPivot<Integer>(HelperFactory.create("QuickSort_DualPivot", n, config)));
+        return res;
     }
-
     public void sortLocalDateTimes(final int n, Config config) throws IOException {
         logger.info("Beginning LocalDateTime sorts");
         // CONSIDER why do we have localDateTimeSupplier IN ADDITION TO localDateTimes?
@@ -97,6 +123,10 @@ public class SortBenchmark {
 
         if (isConfigBenchmarkStringSorter("quicksort"))
             runStringSortBenchmark(words, nWords, nRuns, new QuickSort_Basic<>(nWords, config), timeLoggersLinearithmic);
+        if (isConfigBenchmarkStringSorter("heapsort")) {
+            Helper<String> helper = HelperFactory.create("Heapsort", nWords, config);
+            runStringSortBenchmark(words, nWords, nRuns, new HeapSort<>(helper), timeLoggersLinearithmic);
+        }
 
         if (isConfigBenchmarkStringSorter("introsort"))
             runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, config), timeLoggersLinearithmic);
@@ -111,11 +141,6 @@ public class SortBenchmark {
         // NOTE: this is very slow of course, so recommendation is not to enable this option.
         if (isConfigBenchmarkStringSorter("bubblesort"))
             runStringSortBenchmark(words, nWords, nRuns / 10, new BubbleSort<>(nWords, config), timeLoggersQuadratic);
-
-        if (isConfigBenchmarkStringSorter("heapsort")) {
-            Helper<String> helper = HelperFactory.create("Heapsort", nWords, config);
-            runStringSortBenchmark(words, nWords, nRuns, new HeapSort<>(helper), timeLoggersLinearithmic);
-        }
 
     }
 
@@ -145,6 +170,10 @@ public class SortBenchmark {
 
         if (isConfigBenchmarkStringSorter("quicksort"))
             runStringSortBenchmark(words, nWords, nRuns, new QuickSort_Basic<>(nWords, config), timeLoggersLinearithmic);
+        if (isConfigBenchmarkStringSorter("heapsort")) {
+            Helper<String> helper = HelperFactory.create("Heapsort", nWords, config);
+            runStringSortBenchmark(words, nWords, nRuns, new HeapSort<>(helper), timeLoggersLinearithmic);
+        }
 
         if (isConfigBenchmarkStringSorter("introsort"))
             runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, config), timeLoggersLinearithmic);
@@ -159,13 +188,6 @@ public class SortBenchmark {
         // NOTE: this is very slow of course, so recommendation is not to enable this option.
         if (isConfigBenchmarkStringSorter("bubblesort"))
             runStringSortBenchmark(words, nWords, nRuns / 10, new BubbleSort<>(nWords, config), timeLoggersQuadratic);
-
-        if (isConfigBenchmarkStringSorter("heapsort")) {
-            Helper<String> helper = null;
-            helper = HelperFactory.create("Heapsort", nWords, config);
-            runStringSortBenchmark(words, nWords, nRuns, new HeapSort<>(helper), timeLoggersLinearithmic);
-            System.out.println(helper.showStats());
-        }
     }
 
     private static void runPureSystemSortBenchmark(String[] words, int nWords, int nRuns, Random random) {
@@ -173,13 +195,54 @@ public class SortBenchmark {
         doPureBenchmark(words, nWords, nRuns, random, benchmark);
     }
 
-    private void sortIntegersByShellSort(int N) throws IOException {
+    // CONSIDER generifying common code (but it's difficult if not impossible)
+    private void sortIntegersByShellSort(final int n) {
+        final Random random = new Random();
+
+        // sort int[]
+        final Supplier<int[]> intsSupplier = () -> {
+            int[] result = (int[]) Array.newInstance(int.class, n);
+            for (int i = 0; i < n; i++) result[i] = random.nextInt();
+            return result;
+        };
+
+        final double t1 = new Benchmark_Timer<int[]>(
+                "intArraysorter",
+                (xs) -> Arrays.copyOf(xs, xs.length),
+                Arrays::sort,
+                null
+        ).runFromSupplier(intsSupplier, 100);
+        for (TimeLogger timeLogger : timeLoggersLinearithmic) timeLogger.log(t1, n);
+
+        // sort Integer[]
+        final Supplier<Integer[]> integersSupplier = () -> {
+            Integer[] result = (Integer[]) Array.newInstance(Integer.class, n);
+            for (int i = 0; i < n; i++) result[i] = random.nextInt();
+            return result;
+        };
+
+        final double t2 = new Benchmark_Timer<Integer[]>(
+                "integerArraysorter",
+                (xs) -> Arrays.copyOf(xs, xs.length),
+                Arrays::sort,
+                null
+        ).runFromSupplier(integersSupplier, 100);
+        for (TimeLogger timeLogger : timeLoggersLinearithmic) timeLogger.log(t2, n);
+    }
+
+    // This was added by a Student. Need to figure out what to do with it. What's different from the method with int parameter??
+    private void sortIntegersByShellSort() throws IOException {
         if (isConfigBenchmarkIntegerSorter("shellsort")) {
-            int m = config.getInt(BENCHMARKINTEGERSORTERS, "mode", 5);
-            int runs = config.getInt(BENCHMARKINTEGERSORTERS, "runs", 1000);
-            SortWithHelper<Integer> sorter = new ShellSort<>(m, N, config);
-            Integer[] numbers = sorter.getHelper().random(Integer.class, Random::nextInt);
-            runIntegerSortBenchmark(numbers, N, runs, sorter, sorter::preProcess, timeLoggersSubQuadratic);
+            final Random random = new Random();
+            int N = 1000;
+            for (int j = 0; j < 10; j++) {
+                Integer[] numbers = new Integer[N];
+                for (int i = 0; i < N; i++) numbers[i] = random.nextInt();
+
+                SortWithHelper<Integer> sorter = new ShellSort<>(5);
+                runIntegerSortBenchmark(numbers, N, 1000, sorter, sorter::preProcess, timeLoggersLinearithmic);
+                N = N * 2;
+            }
         }
     }
 
@@ -217,6 +280,7 @@ public class SortBenchmark {
      */
     static void runStringSortBenchmark(String[] words, int nWords, int nRuns, SortWithHelper<String> sorter, UnaryOperator<String[]> preProcessor, TimeLogger[] timeLoggers) {
         new SorterBenchmark<>(String.class, preProcessor, sorter, words, nRuns, timeLoggers).run(nWords);
+        logger.info(sorter.getHelper().showStats());
         sorter.close();
     }
 
@@ -247,6 +311,7 @@ public class SortBenchmark {
      */
     static void runIntegerSortBenchmark(Integer[] numbers, int n, int nRuns, SortWithHelper<Integer> sorter, UnaryOperator<Integer[]> preProcessor, TimeLogger[] timeLoggers) {
         new SorterBenchmark<>(Integer.class, preProcessor, sorter, numbers, nRuns, timeLoggers).run(n);
+        logger.info(sorter.getHelper().showStats());
         sorter.close();
     }
 
@@ -259,25 +324,6 @@ public class SortBenchmark {
     public final static TimeLogger[] timeLoggersLinearithmic = {
             new TimeLogger("Raw time per run (mSec): ", (time, n) -> time),
             new TimeLogger("Normalized time per run (n log n): ", (time, n) -> time / minComparisons(n) / 6 * 1e6)
-    };
-
-    /**
-     * For (basic) insertionsort, the number of array accesses is actually 6 times the number of comparisons.
-     * That's because, for each inversion, there will typically be one swap (four array accesses) and (at least) one comparison (two array accesses).
-     * Thus, in the case where comparisons are based on primitives,
-     * the normalized time per run should approximate the time for one array access.
-     */
-    final static TimeLogger[] timeLoggersQuadratic = {
-            new TimeLogger("Raw time per run (mSec): ", (time, n) -> time),
-            new TimeLogger("Normalized time per run (n^2): ", (time, n) -> time / meanInversions(n) / 6 * 1e6)
-    };
-
-    /**
-     * For shellsort.
-     */
-    final static TimeLogger[] timeLoggersSubQuadratic = {
-            new TimeLogger("Raw time per run (mSec): ", (time, n) -> time),
-            new TimeLogger("Normalized time per run (n^(4/3)): ", (time, n) -> time / Math.pow(n, 4.0 / 3) * 1e6)
     };
 
     final static LazyLogger logger = new LazyLogger(SortBenchmark.class);
@@ -339,10 +385,6 @@ public class SortBenchmark {
 //        runDateTimeSortBenchmark(LocalDateTime.class, localDateTimes, 100000, 100, i);
 //    }
 
-    private static Stream<Integer> getWordCounts(String[] args) {
-        return Arrays.stream(args).map(Integer::parseInt);
-    }
-
     private void runMergeSortBenchmark(String[] words, int nWords, int nRuns, Boolean insurance, Boolean noCopy) {
         Config x = config.copy(MergeSort.MERGESORT, MergeSort.INSURANCE, insurance.toString()).copy(MergeSort.MERGESORT, MergeSort.NOCOPY, noCopy.toString());
         runStringSortBenchmark(words, nWords, nRuns, new MergeSort<>(nWords, x), timeLoggersLinearithmic);
@@ -352,6 +394,8 @@ public class SortBenchmark {
         benchmarkStringSorters(getWords(resource, SortBenchmark::getLeipzigWords), nWords, nRuns);
         if (isConfigBoolean(Config.HELPER, BaseHelper.INSTRUMENT))
             benchmarkStringSortersInstrumented(getWords(resource, SortBenchmark::getLeipzigWords), nWords, nRuns);
+        else
+            benchmarkStringSorters(getWords(resource, SortBenchmark::getLeipzigWords), nWords, nRuns);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -361,13 +405,16 @@ public class SortBenchmark {
         sorterBenchmark.run(N);
     }
 
-    private void getSortedIntegersByShellSort(int x) {
-        try {
-            sortIntegersByShellSort(x);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    /**
+     * For (basic) insertionsort, the number of array accesses is actually 6 times the number of comparisons.
+     * That's because, for each inversion, there will typically be one swap (four array accesses) and (at least) one comparison (two array accesses).
+     * Thus, in the case where comparisons are based on primitives,
+     * the normalized time per run should approximate the time for one array access.
+     */
+    private final static TimeLogger[] timeLoggersQuadratic = {
+            new TimeLogger("Raw time per run (mSec): ", (time, n) -> time),
+            new TimeLogger("Normalized time per run (n^2): ", (time, n) -> time / meanInversions(n) / 6 * 1e6)
+    };
 
     private static final double LgE = Utilities.lg(Math.E);
 
@@ -384,14 +431,12 @@ public class SortBenchmark {
     }
 
     private boolean isConfigBenchmarkIntegerSorter(String option) {
-        return isConfigBoolean(BENCHMARKINTEGERSORTERS, option);
+        return isConfigBoolean("benchmarkintegersorters", option);
     }
 
     private boolean isConfigBoolean(String section, String option) {
         return config.getBoolean(section, option);
     }
-
-    public static final String BENCHMARKINTEGERSORTERS = "benchmarkintegersorters";
 
     private final Config config;
 }

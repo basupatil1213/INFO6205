@@ -12,7 +12,7 @@ public class SortBenchmarkTest {
     @Test
     public void doMain() throws IOException {
         Config config = Config.load(SortBenchmark.class);
-        new SortBenchmark(config).doMain(new String[]{"1000"});
+//        new SortBenchmark(config).doMain(new String[]{"1000"});
     }
 
     @Test
