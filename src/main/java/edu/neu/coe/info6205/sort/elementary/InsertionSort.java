@@ -7,9 +7,6 @@ import edu.neu.coe.info6205.sort.BaseHelper;
 import edu.neu.coe.info6205.sort.Helper;
 import edu.neu.coe.info6205.sort.SortWithHelper;
 import edu.neu.coe.info6205.util.Config;
-import scala.runtime.Null$;
-
-import java.util.Arrays;
 
 /**
  * Class InsertionSort.
@@ -65,24 +62,19 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
      */
     public void sort(X[] xs, int from, int to) {
         final Helper<X> helper = getHelper();
-        // TO BE IMPLEMENTED
-        try {
-            for(int i = from; i < to; i++){
-                int j = i;
-                while(j > from &&
-                        (helper.compare(xs[j-1], xs[j])>0)
-                ){
-                    helper.swap(xs,j-1,j);
-                    j--;
-                }
-            }
-        }catch (Exception exception){
-            throw new RuntimeException("implementation missing");
+        int i, j;
+        X key;
+        for (i = from; i < to; i++) {
+            j = i;
 
+            while (j > from) {
+                if (helper.swapConditional(xs,j-1,j))
+                    j = j - 1;
+                else
+                    break;
+            }
         }
     }
-
-
 
     public static final String DESCRIPTION = "Insertion sort";
 

@@ -1,7 +1,6 @@
 package edu.neu.coe.info6205.threesum;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -39,27 +38,7 @@ public class ThreeSumQuadratic implements ThreeSum {
     public List<Triple> getTriples(int j) {
         List<Triple> triples = new ArrayList<>();
         // TO BE IMPLEMENTED  : for each candidate, test if a[i] + a[j] + a[k] = 0.
-        if (j - 1 < 0 || j + 1 == length)
-            return triples;
-        int k = length - 1;
-        int i = 0;
-        try{
-            while (i<j && k>j){
-                if((a[i] + a[j] + a[k]) == 0){
-                    triples.add(new Triple(a[i], a[j], a[k]));
-                    i++;
-                    k--;
-                } else if (a[i] + a[j] + a[k] > 0) {
-                    k--;
-                }
-                else{
-                    i++;
-                }
-            }
-        }catch(Exception e){
-            throw new RuntimeException("implementation missing");
-        }
-        return  triples;
+throw new RuntimeException("implementation missing");
     }
 
     private final int[] a;
